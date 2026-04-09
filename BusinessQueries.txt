@@ -1,0 +1,84 @@
+Check my cronjob from the log
+cat /home/tmarley/sync.log
+
+
+Queries: enter MongoDB interface
+mongosh POS
+
+
+
+Query 1: The Texas Campaign■ Question: "Who are my customers that live in Texas?"■ Task: Write a query against the Customers collection that filters by State.
+
+db.Customers.find(
+    { "printed_address_2": /TX/ },
+    { "customer_name": 1, "printed_address_2": 1, "_id": 0 }
+).limit(10).pretty()
+
+○ Query 2: The VIP Customer■ Question: "Who is my best customer?"■ Task: Write a query to find the customer who has spent the most money or placed the most orders.
+
+db.Customers.aggregate([
+    { $project: {
+        customer_name: 1,
+        total_spent: { $sum: "$Orders.Order Total" }
+    }},
+    { $sort: { total_spent: -1 }},
+    { $limit: 1 }
+]).pretty()
+
+Who is our VIP customer??
+○ Query 3: Targeted Recall Notice
+■ Question: "How will I find all customers that purchased a specific product in case of a recall?"■ Task: Pick a specific product ID or Name. Write a query against the Products collection to return the array of buyers for that specific item.
+
+db.Customers.find(
+    { "Orders.Items.Product Name": "Dark slate blue L Shaped Office Desk" },
+    { "customer_name": 1, "_id": 0 }
+).pretty()
+
+This shows every customer who purchased that specific product — no JOIN needed! 
+
+
+○ Query 4: Fraud Detection■ Question: "Do any of your orders look fraudulent?"■ Task: Write a creative query against the Customers collection to look for anomalies (e.g., finding a customer who bought 50 of the same expensive item, or searching for suspiciously high order totals).
+
+db.Customers.find(
+    { "Orders.Order Total": { $gt: 9000 } },
+    { "customer_name": 1, "Orders.Order Total": 1, "_id": 0 }
+).pretty()
+
+○ Queries 5 & 6: The Architect's Custom Cases■ Task: Write one powerful query for each of your custom collections that demonstrates why you built that aggregate. Show the business value!
+
+Custom1
+db.Custom1.find(
+    { "state": "TX" },
+    { "shipping_date": 1, "state": 1, "orders.customer_name": 1, "_id": 0 }
+).limit(10).pretty()
+
+Only shows the first 10 to demo. 
+Business value to explain in your video: "This lets our shipping department pull all orders going to Texas on a given day without joining multiple tables."
+
+
+Custom2
+db.Custom2.aggregate([
+    { $unwind: "$products" },
+    { $project: {
+        productName: "$products.productName",
+        total_revenue: "$products.total_revenue",
+        total_units_ordered: "$products.total_units_ordered",
+        _id: 0
+    }},
+    { $sort: { total_revenue: -1 }},
+    { $limit: 5 }
+]).pretty()
+
+Business value to explain in your video: "This lets our merchandising team instantly identify the top 5 best performing products by revenue without any joins or aggregations at query time — the work was already done when the document was built."
+
+
+
+
+All 6 queries are done! Here's your complete summary:
+
+✅ Q1 — Texas customers (regex on printed_address_2)
+✅ Q2 — VIP: Alani Richardson ($55,093.62)
+✅ Q3 — Recall: 16 buyers of the Dark slate blue L Shaped Office Desk
+✅ Q4 — Fraud: Carina Hodnet with a $19,076.92 order
+✅ Q5 — Custom1: Shipments going to a specific state (limit 10)
+✅ Q6 — Custom2: Top 5 revenue-generating products (Candy apple red Reclining Sectional Sofa at $16,799.94!)
