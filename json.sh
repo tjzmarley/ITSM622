@@ -261,3 +261,6 @@ chmod 755 /home/tmarley/sync.sh
 
 
 (crontab -l 2>/dev/null; echo "*/2 * * * * /home/tmarley/sync.sh >> /home/tmarley/sync.log 2>&1") | crontab -
+if [ $? -eq 0 ];
+then    touch /root/info--8-cronjob_scheduled;
+else    touch /root/info--8-cronjob_FAILED--EXIT; exit 1; fi
